@@ -459,6 +459,35 @@ canvas.addEventListener('click', (e) => {
   }
 });
 
+// Touch support for mobile devices
+canvas.addEventListener('touchstart', (e) => {
+  e.preventDefault();
+  const rect = canvas.getBoundingClientRect();
+  const touch = e.touches[0];
+  const x = touch.clientX - rect.left;
+  const y = touch.clientY - rect.top;
+  
+  const text = document.getElementById('textInput').value;
+  if (text) {
+    if (isPreviewMode) {
+      commitPreview();
+    }
+    
+    const fontSize = document.getElementById('fontSize').value;
+    const color = document.getElementById('textColor').value;
+    
+    ctx.font = `bold ${fontSize}px Arial`;
+    ctx.fillStyle = color;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(text, x, y);
+    
+    document.getElementById('textInput').value = '';
+    saveState();
+  }
+}, { passive: false });
+
+
 // Publish poster
 document.getElementById('publishBtn').addEventListener('click', async () => {
   const title = document.getElementById('posterTitle').value.trim();
