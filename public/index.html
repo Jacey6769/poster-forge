@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Poster Forge - Create & Share Posters</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header>
+    <h1>🎨 Poster Forge</h1>
+    <nav>
+      <button id="createBtn" class="nav-btn active">Create</button>
+      <button id="galleryBtn" class="nav-btn">Gallery</button>
+      <button id="adminLoginBtn" class="nav-btn admin-btn">Admin Login</button>
+      <button id="adminLogoutBtn" class="nav-btn admin-btn" style="display: none;">Logout</button>
+    </nav>
+  </header>
+
+  <main>
+    <!-- Create Poster Section -->
+    <section id="createSection" class="section active">
+      <div class="editor-container">
+        <div class="canvas-wrapper">
+          <canvas id="posterCanvas" width="600" height="800"></canvas>
+        </div>
+
+        <div class="controls">
+          <h2>Design Tools</h2>
+          
+          <div class="control-group">
+            <label>Background Color</label>
+            <div class="color-picker-container">
+              <input type="color" id="bgColor" value="#ffffff">
+              <div class="preview-actions" id="previewActions">
+                <button id="saveChangeBtn" class="btn btn-success btn-sm">✓ Save</button>
+                <button id="cancelChangeBtn" class="btn btn-warning btn-sm">✕ Cancel</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="control-group">
+            <div class="btn-group">
+              <button id="undoBtn" class="btn" disabled>↶ Undo</button>
+              <button id="redoBtn" class="btn" disabled>↷ Redo</button>
+            </div>
+            <small style="color: #666;">Ctrl+Z / Ctrl+Y</small>
+          </div>
+
+          <div class="control-group">
+            <label>Add Text</label>
+            <input type="text" id="textInput" placeholder="Enter text">
+            <input type="color" id="textColor" value="#000000">
+            <input type="range" id="fontSize" min="12" max="120" value="48">
+            <span id="fontSizeLabel">48px</span>
+            <button id="addTextBtn" class="btn">Add Text</button>
+          </div>
+
+          <div class="control-group">
+            <label>Add Shape</label>
+            <div class="btn-group">
+              <button id="addRectBtn" class="btn">Rectangle</button>
+              <button id="addCircleBtn" class="btn">Circle</button>
+            </div>
+            <input type="color" id="shapeColor" value="#ff6b6b">
+          </div>
+
+          <div class="control-group">
+            <label>Add Emoji/Sticker</label>
+            <input type="text" id="emojiInput" placeholder="Paste emoji: 🎨">
+            <input type="range" id="emojiSize" min="20" max="200" value="80">
+            <span id="emojiSizeLabel">80px</span>
+            <button id="addEmojiBtn" class="btn">Add Emoji</button>
+          </div>
+
+          <div class="control-group">
+            <button id="clearBtn" class="btn btn-danger">Clear Canvas</button>
+          </div>
+
+          <div class="control-group">
+            <label>Import Image</label>
+            <button id="importImageBtn" class="btn">📷 Load Image File</button>
+            <input type="file" id="imageFileInput" accept="image/png,image/jpeg,image/jpg" style="display: none;">
+            <small style="color: #666;">Load a PNG or JPG as your poster</small>
+          </div>
+
+          <hr>
+
+          <div class="control-group">
+            <label>Poster Title</label>
+            <div style="display: flex; gap: 0.5rem;">
+              <input type="text" id="posterTitle" placeholder="My Awesome Poster (leave empty for AI generation)" style="flex: 1;">
+              <button id="generateTitleBtn" class="btn" style="white-space: nowrap;">✨ AI Title</button>
+            </div>
+            <small style="color: #666;">Leave empty to auto-generate with AI</small>
+          </div>
+
+          <div class="control-group">
+            <label>Tags (comma separated)</label>
+            <input type="text" id="posterTags" placeholder="abstract, colorful, modern">
+          </div>
+
+          <div class="control-group">
+            <div class="btn-group">
+              <button id="exportBtn" class="btn">💾 Export JSON</button>
+              <button id="importBtn" class="btn">📂 Import JSON</button>
+            </div>
+            <input type="file" id="importFile" accept=".json" style="display: none;">
+          </div>
+
+          <button id="publishBtn" class="btn btn-primary">🚀 Publish to Gallery</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Gallery Section -->
+    <section id="gallerySection" class="section">
+      <div class="gallery-controls">
+        <div class="filters">
+          <label>Sort by:</label>
+          <select id="sortSelect">
+            <option value="new">Newest</option>
+            <option value="likes">Most Liked</option>
+          </select>
+
+          <label>Filter by tag:</label>
+          <input type="text" id="tagFilter" placeholder="Enter tag">
+          <button id="filterBtn" class="btn">Filter</button>
+          <button id="clearFilterBtn" class="btn">Clear</button>
+        </div>
+      </div>
+
+      <div id="galleryGrid" class="gallery-grid">
+        <!-- Posters will be loaded here -->
+      </div>
+
+      <div class="pagination">
+        <button id="prevPage" class="btn" disabled>Previous</button>
+        <span id="pageInfo">Page 1</span>
+        <button id="nextPage" class="btn" disabled>Next</button>
+      </div>
+    </section>
+  </main>
+
+  <!-- Modal for viewing poster -->
+  <div id="posterModal" class="modal">
+    <div class="modal-content">
+      <span class="close">&times;</span>
+      <div id="modalBody"></div>
+    </div>
+  </div>
+
+  <!-- Confirmation Dialog -->
+  <div id="confirmDialog" class="modal">
+    <div class="modal-content confirm-dialog">
+      <h3 id="confirmTitle">Confirm Action</h3>
+      <p id="confirmMessage">Are you sure?</p>
+      <div class="confirm-actions">
+        <button id="confirmYes" class="btn btn-primary">Yes</button>
+        <button id="confirmNo" class="btn btn-danger">No</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Notification Toast -->
+  <div id="notification" class="notification"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>
