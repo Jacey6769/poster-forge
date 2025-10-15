@@ -18,6 +18,17 @@ let currentTag = '';
 let likedPosters = new Set(JSON.parse(localStorage.getItem('likedPosters') || '[]'));
 let adminToken = localStorage.getItem('adminToken') || '';
 
+// Update admin button text
+function updateAdminButton() {
+  const btn = document.getElementById('adminLoginBtn');
+  if (btn) {
+    btn.textContent = adminToken ? 'Admin Logout' : 'Admin Login';
+    btn.style.background = adminToken ? '#4CAF50' : '#ff6b6b';
+    btn.style.borderColor = adminToken ? '#4CAF50' : '#ff6b6b';
+  }
+}
+
+
 // Save canvas state to history (only called when "Save" is pressed)
 function saveState() {
   historyStep++;
@@ -906,9 +917,37 @@ function formatDate(timestamp) {
 }
 
 // Admin functions
-document.getElementById('adminLoginBtn')?.addEventListener('click', async () => {
-  const token = prompt('Enter admin token:');
-  if (!token) return;
+document.getElementById('adminLoginBtn')?.addEventListener('click', () => {
+  if (adminToken) {
+    // Already logged in, show logout confirmation
+    showConfirm(
+      'Logout',
+      'Are you sure you want to logout?',
+      () => {
+        adminToken = '';
+        localStorage.removeItem('adminToken');
+        updateAdminButton();
+        showNotification('Logged out', 'info');
+        loadGallery(currentPage);
+      }
+    );
+  } else {
+    // Show login modal
+    const modal = document.getElementById('adminLoginModal');
+    const input = document.getElementById('adminTokenInput');
+    modal.style.display = 'flex';
+    input.value = '';
+    setTimeout(() => input.focus(), 100);
+  }
+});
+
+// Admin login submit
+document.getElementById('adminLoginSubmit')?.addEventListener('click', async () => {
+  const token = document.getElementById('adminTokenInput').value.trim();
+  if (!token) {
+    showNotification('Please enter a token', 'warning');
+    return;
+  }
   
   try {
     const response = await fetch('/api/admin/login', {
@@ -920,6 +959,8 @@ document.getElementById('adminLoginBtn')?.addEventListener('click', async () => 
     if (response.ok) {
       adminToken = token;
       localStorage.setItem('adminToken', token);
+      document.getElementById('adminLoginModal').style.display = 'none';
+      updateAdminButton();
       showNotification('✅ Admin logged in successfully!', 'success');
       loadGallery(currentPage); // Reload to show delete buttons
     } else {
@@ -928,6 +969,25 @@ document.getElementById('adminLoginBtn')?.addEventListener('click', async () => 
   } catch (error) {
     console.error('Error logging in:', error);
     showNotification('Failed to login', 'error');
+  }
+});
+
+// Admin login cancel
+document.getElementById('adminLoginCancel')?.addEventListener('click', () => {
+  document.getElementById('adminLoginModal').style.display = 'none';
+});
+
+// Close admin login modal on outside click
+document.getElementById('adminLoginModal')?.addEventListener('click', (e) => {
+  if (e.target.id === 'adminLoginModal') {
+    document.getElementById('adminLoginModal').style.display = 'none';
+  }
+});
+
+// Admin login on Enter key
+document.getElementById('adminTokenInput')?.addEventListener('keypress', (e) => {
+  if (e.key === 'Enter') {
+    document.getElementById('adminLoginSubmit').click();
   }
 });
 
@@ -961,3 +1021,7 @@ async function deletePoster(posterId) {
     showNotification('Failed to delete poster', 'error');
   }
 }
+
+// Initialize on page load
+updateAdminButton();
+
